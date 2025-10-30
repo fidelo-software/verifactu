@@ -4,13 +4,10 @@ namespace FideloSoftware\Verifactu;
 
 class Result
 {
-	public ?string $response = null;
+	public function __construct(public ?string $response = null, public ?string $request = null, public int $status = 0, public ?string $error = null)
+	{
 
-	public ?string $request = null;
-
-	public int $status = 0;
-
-	public ?string $error = null;
+	}
 
 	/**
 	 * @return array

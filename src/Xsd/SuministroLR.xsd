@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- editado con XMLSpy v2019 sp1 (x64) (http://www.altova.com) por Puesto de Trabajo (Agencia Estatal de Administracion Tributaria ((AEAT))) -->
+<!-- edited with XMLSpy v2009 sp1 (http://www.altova.com) by PC Corporativo (AGENCIA TRIBUTARIA) -->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:sfLR="SuministroLR.xsd" xmlns:sf="SuministroInformacion.xsd" targetNamespace="SuministroLR.xsd" elementFormDefault="qualified">
+	<import namespace="SuministroInformacion.xsd" schemaLocation="SuministroInformacion.xsd"/>
+	<element name="RegFactuSistemaFacturacion">
+		<complexType>
+			<sequence>
+				<element name="Cabecera" type="sf:CabeceraType"/>
+				<element name="RegistroFactura" type="sfLR:RegistroFacturaType" maxOccurs="1000"/>
+			</sequence>
+		</complexType>
+	</element>
+	<complexType name="RegistroFacturaType">
+		<annotation>
+			<documentation xml:lang="es">Datos correspondientes a los registros de facturacion</documentation>
+		</annotation>
+		<sequence>
+			<choice>
+				<element ref="sf:RegistroAlta"/>
+				<element ref="sf:RegistroAnulacion"/>
+			</choice>
+		</sequence>
+	</complexType>
+</schema>

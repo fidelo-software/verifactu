@@ -7,7 +7,7 @@ use Exception;
 class Client
 {
 
-	private ?string $wsdl = 'https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SistemaFacturacion.wsdl';
+	private ?string $wsdl = __DIR__ . '/Xsd/SistemaFacturacion.wsdl';
 
 	private ?string $location = null;
 
@@ -63,7 +63,7 @@ class Client
 				'ssl' => [
 					'verify_peer' => true,
 					'verify_peer_name' => true,
-					'allow_self_signed' => false,
+					'allow_self_signed' => true,
 					'crypto_method' => STREAM_CRYPTO_METHOD_TLS_CLIENT,
 				],
 			]),
@@ -90,8 +90,8 @@ class Client
 			$result->request = $soapClient->__getLastRequest() ?? $soapClient->lastRequestXML;
 			$result->response = $soapClient->__getLastResponse();
 			$headers = $soapClient->__getLastResponseHeaders();
-			if (isset($headers[0])) {
-				preg_match('/HTTP\/\d\.\d\s+(\d+)/', $headers[0], $matches);
+			if ($headers !== null) {
+				preg_match('/HTTP\/\d\.\d\s+(\d+)/', $headers, $matches);
 				if (isset($matches[1])) {
 					$result->status = (int)$matches[1];
 				}
@@ -145,7 +145,7 @@ class Client
 		try {
 			$xml = new \SimpleXMLElement(file_get_contents($this->wsdl));
 		} catch (Exception $e) {
-			return null;
+			return file_exists($this->wsdl) ? 'exists' : $e->getMessage();
 		}
 
 		// Namespaces used in WSDL files (SOAP-specific)
