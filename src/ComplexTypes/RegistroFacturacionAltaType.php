@@ -127,9 +127,9 @@ class RegistroFacturacionAltaType
     public ?string $Cupon = null;
 
     /**
-     * @var ?DetalleType[] $Desglose
+     * @var ?DesgloseType $Desglose
      */
-    public ?array $Desglose = null;
+    public ?DesgloseType $Desglose = null;
 
     /**
      * @var ?string $CuotaTotal
@@ -152,9 +152,9 @@ class RegistroFacturacionAltaType
     public ?SistemaInformaticoType $SistemaInformatico = null;
 
     /**
-     * @var ?DateTime $FechaHoraHusoGenRegistro
+     * @var ?string $FechaHoraHusoGenRegistro
      */
-    public ?DateTime $FechaHoraHusoGenRegistro = null;
+    public ?string $FechaHoraHusoGenRegistro = null;
 
     /**
      * @var ?string $NumRegistroAcuerdoFacturacion

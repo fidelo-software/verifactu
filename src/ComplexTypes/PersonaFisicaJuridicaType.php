@@ -16,13 +16,12 @@ class PersonaFisicaJuridicaType
     public ?string $NombreRazon = null;
 
     /**
-     * @var ?string $NIF
+     * @var ?IDDestinatarioType
      */
-    public ?string $NIF = null;
+    public ?IDDestinatarioType $IDDestinatario = null;
 
     /**
      * @var ?IDOtroType $IDOtro
      */
     public ?IDOtroType $IDOtro = null;
 }
-

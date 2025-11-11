@@ -3,7 +3,7 @@
 namespace FideloSoftware\Verifactu;
 
 class SoapClient extends \SoapClient {
-	public string $lastRequestXML;
+	public string $lastRequestXML = '';
 
 	public function __doRequest(string $request, string $location, string $action, int $version, bool|int $oneWay = false): null|string
 	{

@@ -7,7 +7,8 @@ use Exception;
 class Client
 {
 
-	private ?string $wsdl = __DIR__ . '/Xsd/SistemaFacturacion.wsdl';
+	//private ?string $wsdl = __DIR__ . '/Xsd/SistemaFacturacion.wsdl';
+    private ?string $wsdl ='https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SistemaFacturacion.wsdl';
 
 	private ?string $location = null;
 
@@ -53,7 +54,7 @@ class Client
 			return $result;
 		}
 
-		$location = $this->getLocation($operation);
+		$location = trim($this->getLocation($operation));
 
 		$options = [
 			'trace' => true,
@@ -85,7 +86,7 @@ class Client
 			$soapClient->__setLocation($location);
 			$soapClient->__soapCall($operation, [$data]);
 		} catch (\SoapFault $e) {
-			$result->error = 'SOAP Error: '.$e->getMessage();
+			$result->error = 'SOAP Call Error: '.$e->getMessage();
 		} finally {
 			$result->request = $soapClient->__getLastRequest() ?? $soapClient->lastRequestXML;
 			$result->response = $soapClient->__getLastResponse();
@@ -189,5 +190,58 @@ class Client
 
 		return $locationList;
 	}
+
+    /*
+    private function getWsdlOperations(): ?array
+{
+    $locationList = [];
+
+    try {
+        $xml = new \SimpleXMLElement(file_get_contents($this->wsdl));
+    } catch (Exception $e) {
+        return file_exists($this->wsdl) ? 'exists' : $e->getMessage();
+    }
+
+    $namespaces = $xml->getNamespaces(true);
+
+    // Register namespaces
+    $xml->registerXPathNamespace("wsdl", $namespaces["wsdl"]);
+    foreach ($namespaces as $prefix => $ns) {
+        if (stripos($prefix, 'soap') !== false) {
+            $xml->registerXPathNamespace($prefix, $ns);
+        }
+    }
+
+    foreach ($xml->xpath("//wsdl:service") as $service) {
+        foreach ($service->xpath("./wsdl:port") as $port) {
+
+            // Find address (any SOAP namespace)
+            $address = $port->xpath("*[local-name()='address']");
+            if (!$address) continue;
+
+            $location = (string)$address[0]["location"];
+
+            // Determine binding reference
+            $bindingName = (string)$port["binding"];
+            $bindingLocal = strpos($bindingName, ':') !== false
+                ? explode(":", $bindingName)[1]
+                : $bindingName;
+
+            $binding = $xml->xpath("//wsdl:binding[@name='{$bindingLocal}']")[0] ?? null;
+            if (!$binding) continue;
+
+            // Extract operations from binding
+            foreach ($binding->xpath("./wsdl:operation") as $op) {
+                $opName = (string)$op["name"];
+                $portName = (string)$port["name"];
+
+                $locationList[$opName][$portName] = $location;
+            }
+        }
+    }
+
+    return $locationList;
+}
+     */
 
 }
