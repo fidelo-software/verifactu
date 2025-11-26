@@ -6,9 +6,9 @@ use Exception;
 
 class Client
 {
+    private ?string $testWSDL = 'https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SistemaFacturacion.wsdl';
 
-	//private ?string $wsdl = __DIR__ . '/Xsd/SistemaFacturacion.wsdl';
-    private ?string $wsdl ='https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SistemaFacturacion.wsdl';
+    private ?string $liveWSDL = 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SistemaFacturacion.wsdl';
 
 	private ?string $location = null;
 
@@ -22,11 +22,10 @@ class Client
 		return $this;
 	}
 
-	public function setWSDL(?string $wsdl): Client
-	{
-		$this->wsdl = $wsdl;
-		return $this;
-	}
+    private function getWSDLUrl(): string
+    {
+        return $this->test ? $this->testWSDL : $this->liveWSDL;
+    }
 
 	public function setLocation(?string $location): Client
 	{
@@ -76,7 +75,7 @@ class Client
 		];
 
 		try {
-			$soapClient = new SoapClient($this->wsdl, $options);
+			$soapClient = new SoapClient($this->getWSDLUrl(), $options);
 		} catch (Exception $e) {
 			$result->error = 'SOAP Error: '.$e->getMessage();
 			return $result;
@@ -118,14 +117,14 @@ class Client
 			if (
 				!empty($location) &&
 				$this->test &&
-				str_ends_with($portName, 'Pruebas')
+                preg_match('/(Pruebas|Test|Pre)$/i', $portName)
 			) {
 				return $location;
 			}
 			if (
 				!empty($location) &&
 				!$this->test &&
-				!str_ends_with($portName, 'Pruebas')
+				!preg_match('/(Pruebas|Test|Pre)$/i', $portName)
 			) {
 				return $location;
 			}
@@ -142,44 +141,51 @@ class Client
 	{
 		$locationList = [];
 
-		// Load the WSDL file as XML
 		try {
-			$xml = new \SimpleXMLElement(file_get_contents($this->wsdl));
+			$xml = new \SimpleXMLElement(file_get_contents($this->getWSDLUrl()));
 		} catch (Exception $e) {
-			return file_exists($this->wsdl) ? 'exists' : $e->getMessage();
+			return [];
 		}
 
-		// Namespaces used in WSDL files (SOAP-specific)
 		$namespaces = $xml->getNamespaces(true);
 
-		// Register namespaces (wsdl and soap namespaces)
 		$xml->registerXPathNamespace("wsdl", $namespaces["wsdl"]);
-		if (isset($namespaces["soap"])) {
-			$xml->registerXPathNamespace("soap", $namespaces["soap"]);
-		}
+        foreach (['soap', 'soap12', 'soapenv'] as $prefix) {
+            if (isset($namespaces[$prefix])) {
+                $xml->registerXPathNamespace($prefix, $namespaces[$prefix]);
+            }
+        }
 
-		// Extract <service> elements
 		$services = $xml->xpath("//wsdl:service");
 
 		foreach ($services as $service) {
 			$serviceName = (string)$service["name"];
-			// Extract the ports inside the service
 			$ports = $service->xpath("./wsdl:port");
 			foreach ($ports as $port) {
 				$portName = (string)$port["name"];
 
-				// Get the binding associated with this port
 				$bindingName = (string)$port["binding"];
-				$binding = $xml->xpath("//wsdl:binding[@name='"
-					. explode(":", $bindingName)[1] . "']")[0];
+                $bindingLocalName = strpos($bindingName, ':') !== false
+                    ? explode(":", $bindingName)[1]
+                    : $bindingName;
 
-				// Extract the address (endpoint URL)
-				$address = $port->xpath("./soap:address");
+                $bindingMatches = $xml->xpath("//wsdl:binding[@name='{$bindingLocalName}']");
+
+                if (!$bindingMatches) {
+                    continue;
+                }
+
+                $binding = $bindingMatches[0];
+
+                $address = array_merge(
+                    $port->xpath("./soap:address") ?: [],
+                    $port->xpath("./soap12:address") ?: [],
+                    $port->xpath("./soapenv:address") ?: []
+                );
 				if ($address) {
 					$location = (string)$address[0]["location"];
 				} else continue;
 
-				// Extract operations from the binding
 				$operations = $binding->xpath("./wsdl:operation");
 				foreach ($operations as $operation) {
 					$operationName = (string)$operation["name"];
@@ -190,58 +196,5 @@ class Client
 
 		return $locationList;
 	}
-
-    /*
-    private function getWsdlOperations(): ?array
-{
-    $locationList = [];
-
-    try {
-        $xml = new \SimpleXMLElement(file_get_contents($this->wsdl));
-    } catch (Exception $e) {
-        return file_exists($this->wsdl) ? 'exists' : $e->getMessage();
-    }
-
-    $namespaces = $xml->getNamespaces(true);
-
-    // Register namespaces
-    $xml->registerXPathNamespace("wsdl", $namespaces["wsdl"]);
-    foreach ($namespaces as $prefix => $ns) {
-        if (stripos($prefix, 'soap') !== false) {
-            $xml->registerXPathNamespace($prefix, $ns);
-        }
-    }
-
-    foreach ($xml->xpath("//wsdl:service") as $service) {
-        foreach ($service->xpath("./wsdl:port") as $port) {
-
-            // Find address (any SOAP namespace)
-            $address = $port->xpath("*[local-name()='address']");
-            if (!$address) continue;
-
-            $location = (string)$address[0]["location"];
-
-            // Determine binding reference
-            $bindingName = (string)$port["binding"];
-            $bindingLocal = strpos($bindingName, ':') !== false
-                ? explode(":", $bindingName)[1]
-                : $bindingName;
-
-            $binding = $xml->xpath("//wsdl:binding[@name='{$bindingLocal}']")[0] ?? null;
-            if (!$binding) continue;
-
-            // Extract operations from binding
-            foreach ($binding->xpath("./wsdl:operation") as $op) {
-                $opName = (string)$op["name"];
-                $portName = (string)$port["name"];
-
-                $locationList[$opName][$portName] = $location;
-            }
-        }
-    }
-
-    return $locationList;
-}
-     */
 
 }
