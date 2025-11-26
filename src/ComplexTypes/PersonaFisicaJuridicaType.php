@@ -16,9 +16,9 @@ class PersonaFisicaJuridicaType
     public ?string $NombreRazon = null;
 
     /**
-     * @var ?IDDestinatarioType
+     * @var ?string $NIF
      */
-    public ?IDDestinatarioType $IDDestinatario = null;
+    public ?string $NIF = null;
 
     /**
      * @var ?IDOtroType $IDOtro

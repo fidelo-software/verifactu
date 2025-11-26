@@ -45,7 +45,7 @@ class Client
 		return $this->getLocationFromWSDL($operation);
 	}
 
-	public function callWithSoapClient(string $operation, array $data): Result
+	public function callWithSoapClient(string $operation, string $data): Result
 	{
 		$result = new Result();
 		if (!extension_loaded('soap')) {
@@ -54,7 +54,7 @@ class Client
 		}
 
 		$location = trim($this->getLocation($operation));
-
+        $data = unserialize($data);
 		$options = [
 			'trace' => true,
 			'exceptions' => true,
