@@ -14,7 +14,7 @@ class Client
 
 	private ?Certificate $certificate = null;
 
-	private bool $test = false;
+	private bool $test = true;
 
 	public function setTest(bool $test): Client
 	{

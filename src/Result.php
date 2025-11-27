@@ -67,7 +67,7 @@ class Result
             }
 
             // Interpret EstadoRegistro
-            $accepted = match($lineXml['EstadoRegistro'] ?? null) {
+            $accepted = match ($lineXml['EstadoRegistro'] ?? null) {
                 'Aceptado', 'AceptadoConErrores' => true,
                 default => false,
             };
