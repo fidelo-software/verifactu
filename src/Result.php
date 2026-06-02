@@ -53,30 +53,30 @@ class Result
         // Response lines
         $result['responseLines'] = [];
 
-        foreach ($xpath->query('//tikR:RespuestaLinea') as $lineNode) {
-            $lineXml = Helper::xmlNodeToArray($lineNode);
+		foreach ($xpath->query('//tikR:RespuestaLinea') as $lineNode) {
+			$lineXml = Helper::xmlNodeToArray($lineNode);
 
-            // If description missing, fill from error catalog
-            if (
-                empty($lineXml['DescripcionErrorRegistro']) &&
-                !empty($lineXml['CodigoErrorRegistro'])
-            ) {
-                $code = $lineXml['CodigoErrorRegistro'];
-                $lineXml['DescripcionErrorRegistro'] =
-                    Error::$errorCodes[$code] ?? 'Unknown error';
-            }
+			// If description missing, fill from error catalog
+			if (
+				empty($lineXml['tikR:DescripcionErrorRegistro']) &&
+				!empty($lineXml['tikR:CodigoErrorRegistro'])
+			) {
+				$code = $lineXml['tikR:CodigoErrorRegistro'];
+				$lineXml['tikR:DescripcionErrorRegistro'] =
+					Error::$errorCodes[$code] ?? 'Unknown error';
+			}
 
-            // Interpret EstadoRegistro
-            $accepted = match ($lineXml['EstadoRegistro'] ?? null) {
-                'Aceptado', 'AceptadoConErrores' => true,
-                default => false,
-            };
+			// Interpret EstadoRegistro
+			$accepted = match ($lineXml['tikR:EstadoRegistro'] ?? null) {
+				'Aceptado', 'AceptadoConErrores' => true,
+				default => false,
+			};
 
-            $result['responseLines'][] = [
-                'xml'      => $lineXml,
-                'accepted' => $accepted
-            ];
-        }
+			$result['responseLines'][] = [
+				'xml'      => $lineXml,
+				'accepted' => $accepted
+			];
+		}
 
         return $result;
     }
