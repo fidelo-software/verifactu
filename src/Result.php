@@ -66,9 +66,9 @@ class Result
 					Error::$errorCodes[$code] ?? 'Unknown error';
 			}
 
-			// Interpret EstadoRegistro
+			// Interpret EstadoRegistro (mögliche Werte laut AEAT: Correcto, AceptadoConErrores, Incorrecto)
 			$accepted = match ($lineXml['tikR:EstadoRegistro'] ?? null) {
-				'Aceptado', 'AceptadoConErrores' => true,
+				'Correcto', 'AceptadoConErrores' => true,
 				default => false,
 			};
 
